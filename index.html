@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pase de Acceso - Vulcan</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+    body { background-color: #525659; padding: 15px 10px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+
+    /* PANEL FORMULARIO */
+    .form-container { background: #fff; padding: 20px; border-radius: 8px; width: 100%; max-width: 800px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); margin-bottom: 20px; }
+    .form-container h2 { color: #0052cc; margin-bottom: 15px; font-size: 18px; border-bottom: 2px solid #0052cc; padding-bottom: 5px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .form-group { display: flex; flex-direction: column; margin-bottom: 5px; }
+    .form-group label { font-size: 11px; font-weight: bold; margin-bottom: 3px; color: #333; }
+    .form-group input, .form-group textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+    
+    .section-title { font-size: 13px; font-weight: bold; color: #0052cc; margin: 15px 0 8px 0; background: #eef2f5; padding: 6px 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .dynamic-row { background: #f9f9f9; padding: 10px; border: 1px dashed #ccc; border-radius: 6px; margin-bottom: 8px; }
+    .btn-add { background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; }
+    .btn-remove { background: #dc3545; color: white; border: none; padding: 3px 8px; border-radius: 3px; font-size: 10px; cursor: pointer; float: right; }
+    
+    .btn-action { background: #0052cc; color: #fff; border: none; padding: 12px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 15px; width: 100%; font-size: 14px; }
+    
+    .qr-result-box { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); text-align: center; margin-bottom: 20px; width: 100%; max-width: 420px; display: none; }
+    #qrcode-temp { display: flex; justify-content: center; margin: 15px 0; }
+    .btn-download-qr { background: #17a2b8; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 13px; width: 100%; }
+    .btn-download-pdf { background: #28a745; color: #fff; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: none; font-size: 14px; width: 100%; max-width: 800px; box-shadow: 0 3px 6px rgba(0,0,0,0.3); }
+
+    /* CONTENEDOR Y HOJA EXACTA AL PDF FISICO */
+    .sheet-wrapper {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .sheet { 
+      background: #ffffff; 
+      width: 100%;
+      min-height: 279mm; /* Proporción estándar Carta */
+      padding: 30px 35px; 
+      box-sizing: border-box; 
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+      display: none; 
+      flex-direction: column;
+      justify-content: space-between;
+      color: #111;
+    }
+
+    /* ENCABEZADO FISICO */
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+    .header-table td { border: 1px solid #000; padding: 6px 8px; text-align: center; vertical-align: middle; }
+    .logo-td { width: 28%; font-weight: bold; font-size: 22px; color: #0b2e59; }
+    .logo-td img { max-width: 100%; height: auto; max-height: 55px; }
+    .title-td { width: 44%; font-weight: bold; font-size: 12px; color: #000; line-height: 1.3; text-transform: uppercase; }
+    .meta-td { width: 28%; font-size: 11px; text-align: left; padding-left: 8px !important; color: #000; }
+    .meta-td div { margin-bottom: 4px; }
+
+    /* DATOS DEL PASE */
+    .info-block { font-size: 12px; margin-bottom: 25px; line-height: 2; color: #000; }
+    .info-row { display: flex; justify-content: space-between; }
+    .info-item { display: flex; }
+    .info-label { font-weight: bold; color: #000; margin-right: 5px; }
+    .info-val { font-weight: normal; color: #000; border-bottom: 1px dotted #888; flex-grow: 1; min-width: 80px; }
+
+    /* TABLAS DE PERSONAL Y VEHICULOS */
+    .table-section-title { font-size: 12px; font-weight: bold; text-align: center; margin: 15px 0 6px 0; color: #000; }
+    .custom-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; }
+    .custom-table th { background-color: #4a7bb0; color: white; border: 1px solid #000; padding: 6px 4px; text-align: center; font-weight: bold; }
+    .custom-table td { border: 1px solid #000; padding: 5px 4px; text-align: center; height: 26px; }
+
+    /* SECCION FIRMAS Y PIE */
+    .signatures-container { display: flex; justify-content: space-around; text-align: center; margin-top: 40px; margin-bottom: 30px; }
+    .sig-box { width: 40%; display: flex; flex-direction: column; align-items: center; }
+    .sig-title { font-weight: bold; font-size: 12px; margin-bottom: 40px; color: #000; }
+    .sig-line { width: 100%; border-top: 1px solid #000; margin-bottom: 5px; }
+    .sig-name { font-weight: bold; font-size: 11px; text-transform: uppercase; color: #000; }
+    .sig-cargo { font-size: 10px; color: #222; font-weight: bold; text-transform: uppercase; }
+
+    .note-text { font-size: 10px; font-weight: bold; line-height: 1.4; text-align: justify; margin-bottom: 20px; color: #000; }
+    .footer-divider { border-bottom: 1px solid #000; margin-bottom: 8px; width: 100%; }
+    .footer-address { text-align: center; font-size: 9px; color: #222; }
+  </style>
+</head>
+<body>
+
+  <!-- FORMULARIO DE CARGA -->
+  <div class="form-container" id="form-panel">
+    <h2>📋 Generador de Pase de Acceso (Vulcan)</h2>
+    
+    <div class="grid-3">
+      <div class="form-group"><label>CÓDIGO PASE</label><input type="text" id="in-codigo" value="SPI-2026-001"></div>
+      <div class="form-group"><label>FECHA EMISIÓN</label><input type="date" id="in-fecha"></div>
+      <div class="form-group"><label>NRO. CONTROL</label><input type="text" id="in-nro" value="001"></div>
+    </div>
+
+    <div class="form-group"><label>ACTIVIDAD / TRABAJO</label><input type="text" id="in-actividad"></div>
+    <div class="grid-2">
+      <div class="form-group"><label>EMPRESA</label><input type="text" id="in-empresa"></div>
+      <div class="form-group"><label>RIF</label><input type="text" id="in-rif"></div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>FECHA DE INICIO</label><input type="date" id="in-f-inicio"></div>
+      <div class="form-group"><label>FECHA DE CULMINACIÓN</label><input type="date" id="in-f-fin"></div>
+    </div>
+
+    <div class="section-title">Autorización (Firmas)</div>
+    <div class="grid-2">
+      <div class="form-group"><label>AUTORIZADO POR</label><input type="text" id="in-aut-nombre" placeholder="Ej: XXXXXXXXXX"></div>
+      <div class="form-group"><label>CARGO AUTORIZADO</label><input type="text" id="in-aut-cargo" value="GERENTE SOLICITANTE"></div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>VALIDADO POR</label><input type="text" id="in-val-nombre" placeholder="Ej: OSCAR GIL ARIAS"></div>
+      <div class="form-group"><label>CARGO VALIDADO</label><input type="text" id="in-val-cargo" value="GERENTE DE SEGURIDAD Y PROTECCION INTEGRAL"></div>
+    </div>
+
+    <div class="section-title">
+      Personal Autorizado
+      <button class="btn-add" onclick="agregarFilaPersonal()">+ Agregar Personal</button>
+    </div>
+    <div id="container-personal"></div>
+
+    <div class="section-title">
+      Vehículos Autorizados
+      <button class="btn-add" onclick="agregarFilaVehiculo()">+ Agregar Vehículo</button>
+    </div>
+    <div id="container-vehiculos"></div>
+
+    <button class="btn-action" onclick="generarQR()">GENERAR CÓDIGO QR</button>
+  </div>
+
+  <!-- VISTA DEL QR GENERADO -->
+  <div class="qr-result-box" id="qr-panel">
+    <h3>📱 Código QR Generado</h3>
+    <div id="qrcode-temp"></div>
+    <button class="btn-download-qr" onclick="descargarImagenQR()">📥 DESCARGAR CÓDIGO QR</button>
+  </div>
+
+  <button id="btn-descargar-pdf" class="btn-download-pdf" onclick="descargarPDF()">📄 DESCARGAR PASE EN FORMATO PDF</button>
+
+  <!-- VISTA VIRTUAL DEL PASE (IDENTICO AL PDF ORIGINAL) -->
+  <div class="sheet-wrapper">
+    <div class="sheet" id="pase-hoja">
+      <div>
+        <!-- ENCABEZADO -->
+        <table class="header-table">
+          <tr>
+            <td class="logo-td"><img src="Logo Corporativo.png" alt="Vulcan" onerror="this.outerHTML='<span class=\'logo-td\'>Vulcan</span>'"></td>
+            <td class="title-td">GERENCIA DE SEGURIDAD Y PROTECCION INTEGRAL<br><br>PASE LISTA ACTIVIDADES TEMPORALES<br>(&le; 30 DÍAS)</td>
+            <td class="meta-td">
+              <div><strong>Código:</strong> <span id="out-codigo">--</span></div>
+              <div><strong>Fecha:</strong> <span id="out-fecha">--</span></div>
+              <div><strong>Nro.</strong> <span id="out-nro" style="margin-left: 10px;">--</span></div>
+            </td>
+          </tr>
+        </table>
+
+        <!-- DATOS DE ACTIVIDAD Y EMPRESA -->
+        <div class="info-block">
+          <div class="info-item"><span class="info-label">Actividad/Trabajo:</span> <span class="info-val" id="out-actividad"></span></div>
+          <div class="info-item"><span class="info-label">Empresa:</span> <span class="info-val" id="out-empresa"></span></div>
+          <div class="info-item"><span class="info-label">Rif:</span> <span class="info-val" id="out-rif"></span></div>
+          <div class="info-row">
+            <div class="info-item" style="width: 48%;"><span class="info-label">Fecha de Inicio:</span> <span class="info-val" id="out-f-inicio"></span></div>
+            <div class="info-item" style="width: 48%;"><span class="info-label">Fecha de Culminación:</span> <span class="info-val" id="out-f-fin"></span></div>
+          </div>
+        </div>
+
+        <!-- TABLA PERSONAL -->
+        <div class="table-section-title">Personal autorizado</div>
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th style="width: 6%;">N°</th>
+              <th style="width: 34%;">Nombre y Apellido</th>
+              <th style="width: 20%;">Cédula</th>
+              <th style="width: 20%;">Cargo</th>
+              <th style="width: 20%;">Telf</th>
+            </tr>
+          </thead>
+          <tbody id="out-table-personal"></tbody>
+        </table>
+
+        <!-- TABLA VEHICULOS -->
+        <div class="table-section-title">Vehículos</div>
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th style="width: 6%;">N°</th>
+              <th style="width: 16%;">Placa</th>
+              <th style="width: 16%;">Marca</th>
+              <th style="width: 16%;">Modelo</th>
+              <th style="width: 12%;">Tipo</th>
+              <th style="width: 10%;">Año</th>
+              <th style="width: 24%;">Conductor</th>
+            </tr>
+          </thead>
+          <tbody id="out-table-vehiculos"></tbody>
+        </table>
+      </div>
+
+      <div>
+        <!-- SECCION FIRMAS -->
+        <div class="signatures-container">
+          <div class="sig-box">
+            <div class="sig-title">Autorizado por:</div>
+            <div class="sig-line"></div>
+            <div class="sig-name" id="out-aut-nombre">--</div>
+            <div class="sig-cargo" id="out-aut-cargo">--</div>
+          </div>
+          <div class="sig-box">
+            <div class="sig-title">Validado por:</div>
+            <div class="sig-line"></div>
+            <div class="sig-name" id="out-val-nombre">--</div>
+            <div class="sig-cargo" id="out-val-cargo">--</div>
+          </div>
+        </div>
+
+        <!-- NOTA Y PIE -->
+        <div class="note-text">
+          NOTA: Consignar una copia del presente pase al supervisor de Seguridad y Protección Integral en el campamento Vulcan del campo Cariña, antes de iniciar las actividades.
+        </div>
+
+        <div class="footer-divider"></div>
+        <div class="footer-address">
+          Calle 19 sur, Centro Empresarial San Remo Mall, Planta baja El Tigre, Anzoátegui- Venezuela
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('in-fecha').valueAsDate = new Date();
+
+    function agregarFilaPersonal(p = {}) {
+      const container = document.getElementById('container-personal');
+      const div = document.createElement('div');
+      div.className = 'dynamic-row p-item';
+      div.innerHTML = `
+        <button class="btn-remove" onclick="this.parentElement.remove()">✕ Eliminar</button>
+        <div class="grid-3">
+          <div class="form-group"><label>NOMBRE Y APELLIDO</label><input type="text" class="p-nom" value="${p.n || ''}"></div>
+          <div class="form-group"><label>CÉDULA</label><input type="text" class="p-ced" value="${p.c || ''}"></div>
+          <div class="form-group"><label>CARGO</label><input type="text" class="p-car" value="${p.ca || ''}"></div>
+        </div>
+        <div class="form-group"><label>TELÉFONO</label><input type="text" class="p-tel" value="${p.t || ''}"></div>
+      `;
+      container.appendChild(div);
+    }
+
+    function agregarFilaVehiculo(v = {}) {
+      const container = document.getElementById('container-vehiculos');
+      const div = document.createElement('div');
+      div.className = 'dynamic-row v-item';
+      div.innerHTML = `
+        <button class="btn-remove" onclick="this.parentElement.remove()">✕ Eliminar</button>
+        <div class="grid-3">
+          <div class="form-group"><label>PLACA</label><input type="text" class="v-pla" value="${v.p || ''}"></div>
+          <div class="form-group"><label>MARCA</label><input type="text" class="v-mar" value="${v.m || ''}"></div>
+          <div class="form-group"><label>MODELO</label><input type="text" class="v-mod" value="${v.mo || ''}"></div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group"><label>TIPO</label><input type="text" class="v-tip" value="${v.t || ''}"></div>
+          <div class="form-group"><label>AÑO</label><input type="text" class="v-ano" value="${v.a || ''}"></div>
+          <div class="form-group"><label>CONDUCTOR</label><input type="text" class="v-con" value="${v.co || ''}"></div>
+        </div>
+      `;
+      container.appendChild(div);
+    }
+
+    agregarFilaPersonal();
+    agregarFilaVehiculo();
+
+    function generarQR() {
+      var personalArr = [];
+      document.querySelectorAll('.p-item').forEach(row => {
+        var nom = row.querySelector('.p-nom').value.trim();
+        var ced = row.querySelector('.p-ced').value.trim();
+        var car = row.querySelector('.p-car').value.trim();
+        var tel = row.querySelector('.p-tel').value.trim();
+        if (nom !== "" || ced !== "") personalArr.push([nom, ced, car, tel]);
+      });
+
+      var vehiculosArr = [];
+      document.querySelectorAll('.v-item').forEach(row => {
+        var pla = row.querySelector('.v-pla').value.trim();
+        var mar = row.querySelector('.v-mar').value.trim();
+        var mod = row.querySelector('.v-mod').value.trim();
+        var tip = row.querySelector('.v-tip').value.trim();
+        var ano = row.querySelector('.v-ano').value.trim();
+        var con = row.querySelector('.v-con').value.trim();
+        if (pla !== "" || mar !== "") vehiculosArr.push([pla, mar, mod, tip, ano, con]);
+      });
+
+      var pasePayload = {
+        c: document.getElementById('in-codigo').value,
+        f: document.getElementById('in-fecha').value,
+        nr: document.getElementById('in-nro').value,
+        a: document.getElementById('in-actividad').value,
+        e: document.getElementById('in-empresa').value,
+        r: document.getElementById('in-rif').value,
+        fi: document.getElementById('in-f-inicio').value,
+        ff: document.getElementById('in-f-fin').value,
+        an: document.getElementById('in-aut-nombre').value,
+        ac: document.getElementById('in-aut-cargo').value,
+        vn: document.getElementById('in-val-nombre').value,
+        vc: document.getElementById('in-val-cargo').value,
+        p: personalArr,
+        v: vehiculosArr
+      };
+
+      var jsonStr = JSON.stringify(pasePayload);
+      var compressedData = LZString.compressToEncodedURIComponent(jsonStr);
+
+      var baseUrl = window.location.href.split('?')[0];
+      var targetURL = baseUrl + "?data=" + compressedData;
+
+      var tempDiv = document.getElementById("qrcode-temp");
+      tempDiv.innerHTML = "";
+
+      new QRCode(tempDiv, {
+        text: targetURL,
+        width: 280,
+        height: 280,
+        correctLevel: QRCode.CorrectLevel.L
+      });
+
+      document.getElementById('qr-panel').style.display = 'block';
+      document.getElementById('pase-hoja').style.display = 'none';
+      document.getElementById('btn-descargar-pdf').style.display = 'none';
+    }
+
+    function descargarImagenQR() {
+      var container = document.getElementById("qrcode-temp");
+      var img = container.querySelector("img");
+      var canvas = container.querySelector("canvas");
+      var src = img ? img.src : (canvas ? canvas.toDataURL("image/png") : null);
+
+      if (src) {
+        var enlace = document.createElement("a");
+        enlace.href = src;
+        enlace.download = "QR_Pase_" + document.getElementById('in-codigo').value + ".png";
+        enlace.click();
+      }
+    }
+
+    function descargarPDF() {
+      var elemento = document.getElementById('pase-hoja');
+      var opt = { 
+        margin: [5, 5, 5, 5], 
+        filename: 'Pase_Vulcan_' + document.getElementById('out-codigo').innerText + '.pdf', 
+        image: { type: 'jpeg', quality: 0.98 }, 
+        html2canvas: { scale: 2, useCORS: true }, 
+        jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' } 
+      };
+
+      html2pdf().set(opt).from(elemento).save();
+    }
+
+    window.onload = function() {
+      var urlParams = new URLSearchParams(window.location.search);
+
+      if (urlParams.has('data')) {
+        try {
+          var compressed = urlParams.get('data');
+          var decompressed = LZString.decompressFromEncodedURIComponent(compressed);
+          var data = JSON.parse(decompressed);
+
+          document.getElementById('out-codigo').innerText = data.c || '';
+          document.getElementById('out-fecha').innerText = data.f || '';
+          document.getElementById('out-nro').innerText = data.nr || '';
+          document.getElementById('out-actividad').innerText = data.a || '';
+          document.getElementById('out-empresa').innerText = data.e || '';
+          document.getElementById('out-rif').innerText = data.r || '';
+          document.getElementById('out-f-inicio').innerText = data.fi || '';
+          document.getElementById('out-f-fin').innerText = data.ff || '';
+
+          document.getElementById('out-aut-nombre').innerText = data.an || 'XXXXXXXXXX';
+          document.getElementById('out-aut-cargo').innerText = data.ac || 'GERENTE SOLICITANTE';
+          document.getElementById('out-val-nombre').innerText = data.vn || 'OSCAR GIL ARIAS';
+          document.getElementById('out-val-cargo').innerText = data.vc || 'GERENTE DE SEGURIDAD Y PROTECCION INTEGRAL';
+
+          // RENDERIZAR TABLA PERSONAL (MINIMO 3 FILAS COMO LA HOJA ORIGINAL)
+          var tbodyP = document.getElementById('out-table-personal');
+          tbodyP.innerHTML = '';
+          var persList = data.p || [];
+          var totalFilasP = Math.max(3, persList.length);
+
+          for (var i = 0; i < totalFilasP; i++) {
+            var rowData = persList[i] || ['', '', '', ''];
+            tbodyP.innerHTML += `<tr>
+              <td>${i + 1}</td>
+              <td>${rowData[0]}</td>
+              <td>${rowData[1]}</td>
+              <td>${rowData[2]}</td>
+              <td>${rowData[3]}</td>
+            </tr>`;
+          }
+
+          // RENDERIZAR TABLA VEHICULOS (MINIMO 2 FILAS COMO LA HOJA ORIGINAL)
+          var tbodyV = document.getElementById('out-table-vehiculos');
+          tbodyV.innerHTML = '';
+          var vehList = data.v || [];
+          var totalFilasV = Math.max(2, vehList.length);
+
+          for (var j = 0; j < totalFilasV; j++) {
+            var vData = vehList[j] || ['', '', '', '', '', ''];
+            tbodyV.innerHTML += `<tr>
+              <td>${j + 1}</td>
+              <td>${vData[0]}</td>
+              <td>${vData[1]}</td>
+              <td>${vData[2]}</td>
+              <td>${vData[3]}</td>
+              <td>${vData[4]}</td>
+              <td>${vData[5]}</td>
+            </tr>`;
+          }
+
+          document.getElementById('form-panel').style.display = 'none';
+          document.getElementById('qr-panel').style.display = 'none';
+          document.getElementById('pase-hoja').style.display = 'flex';
+          document.getElementById('btn-descargar-pdf').style.display = 'block';
+
+        } catch (e) {
+          console.error("Error al procesar los datos del QR:", e);
+        }
+      }
+    };
+  </script>
+</body>
+</html>
