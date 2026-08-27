@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pase de Acceso - Vulcan</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -34,61 +34,59 @@
     .btn-download-qr { background: #17a2b8; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 13px; width: 100%; }
     .btn-download-pdf { background: #28a745; color: #fff; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: none; font-size: 14px; width: 95%; max-width: 800px; box-shadow: 0 3px 6px rgba(0,0,0,0.3); }
 
-    /* CONTENEDOR DE LA HOJA */
-    .sheet-viewport {
+    /* VISTA DE HOJA AL ESCANEAR EL QR */
+    .sheet-wrapper {
       width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      overflow: hidden;
+      max-width: 800px;
+      padding: 0 10px;
+      box-sizing: border-box;
     }
 
     .sheet { 
       background: #ffffff; 
-      width: 794px; 
-      min-height: 1050px;
-      padding: 40px 45px; 
+      width: 100%;
+      padding: 25px 20px; 
       box-sizing: border-box; 
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
       display: none; 
       flex-direction: column;
       justify-content: space-between;
       color: #111;
-      transform-origin: top center;
+      border-radius: 4px;
     }
 
     /* ENCABEZADO */
-    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; table-layout: fixed; }
-    .header-table td { border: 1px solid #000; padding: 6px 8px; text-align: center; vertical-align: middle; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
+    .header-table td { border: 1px solid #000; padding: 6px 4px; text-align: center; vertical-align: middle; }
     .logo-td { width: 28%; }
-    .logo-td img { max-width: 100%; height: auto; max-height: 55px; }
-    .title-td { width: 44%; font-weight: bold; font-size: 12px; color: #000; line-height: 1.35; }
-    .meta-td { width: 28%; font-size: 11px; text-align: left; padding-left: 12px !important; color: #000; white-space: nowrap; }
-    .meta-td div { margin-bottom: 4px; }
+    .logo-td img { max-width: 100%; height: auto; max-height: 50px; }
+    .title-td { width: 44%; font-weight: bold; font-size: 11px; color: #000; line-height: 1.3; }
+    .meta-td { width: 28%; font-size: 10px; text-align: left; padding-left: 6px !important; color: #000; }
+    .meta-td div { margin-bottom: 3px; }
 
     /* DATOS DEL PASE */
-    .info-block { font-size: 12px; margin-bottom: 25px; line-height: 1.9; color: #000; }
-    .info-row { display: flex; justify-content: space-between; width: 100%; }
+    .info-block { font-size: 12px; margin-bottom: 20px; line-height: 1.8; color: #000; }
+    .info-row { display: flex; justify-content: space-between; width: 100%; flex-wrap: wrap; }
     .info-label { font-weight: bold; color: #000; }
-    .info-val { font-weight: normal; color: #000; margin-left: 5px; border-bottom: 1px dotted #666; min-width: 100px; display: inline-block; }
+    .info-val { font-weight: normal; color: #000; margin-left: 5px; border-bottom: 1px dotted #666; min-width: 80px; display: inline-block; }
 
     /* TABLAS DE PERSONAL Y VEHICULOS */
-    .table-section-title { font-size: 12px; font-weight: bold; text-align: center; margin: 18px 0 6px 0; color: #000; }
-    .custom-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; }
-    .custom-table th { background-color: #4f81bd; color: white; border: 1px solid #000; padding: 6px 4px; text-align: center; font-weight: bold; }
-    .custom-table td { border: 1px solid #000; padding: 6px 4px; text-align: center; height: 26px; }
+    .table-section-title { font-size: 12px; font-weight: bold; text-align: center; margin: 15px 0 6px 0; color: #000; }
+    .custom-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 15px; }
+    .custom-table th { background-color: #4f81bd; color: white; border: 1px solid #000; padding: 5px 3px; text-align: center; font-weight: bold; }
+    .custom-table td { border: 1px solid #000; padding: 5px 3px; text-align: center; height: 24px; word-break: break-word; }
 
     /* SECCION FIRMAS Y PIE */
-    .footer-block { margin-top: auto; width: 100%; }
-    .signatures-container { display: flex; justify-content: space-around; text-align: center; margin-top: 40px; margin-bottom: 50px; }
-    .sig-box { width: 45%; }
-    .sig-title { font-weight: bold; font-size: 12px; margin-bottom: 45px; color: #000; }
-    .sig-name { font-weight: bold; font-size: 11.5px; text-transform: uppercase; color: #000; border-top: 1px solid #000; padding-top: 4px; }
-    .sig-cargo { font-size: 10.5px; color: #222; font-weight: bold; text-transform: uppercase; }
+    .footer-block { margin-top: 20px; width: 100%; }
+    .signatures-container { display: flex; justify-content: space-between; text-align: center; margin-top: 30px; margin-bottom: 35px; }
+    .sig-box { width: 48%; }
+    .sig-title { font-weight: bold; font-size: 11px; margin-bottom: 35px; color: #000; }
+    .sig-name { font-weight: bold; font-size: 11px; text-transform: uppercase; color: #000; border-top: 1px solid #000; padding-top: 4px; }
+    .sig-cargo { font-size: 10px; color: #222; font-weight: bold; text-transform: uppercase; }
 
-    .note-text { font-size: 10.5px; font-weight: bold; line-height: 1.4; text-align: left; margin-bottom: 20px; color: #000; }
+    .note-text { font-size: 10px; font-weight: bold; line-height: 1.4; text-align: left; margin-bottom: 15px; color: #000; }
     .footer-divider { border-bottom: 1px solid #000; margin-bottom: 8px; width: 100%; }
-    .footer-address { text-align: center; font-size: 9.5px; color: #222; }
+    .footer-address { text-align: center; font-size: 9px; color: #222; }
   </style>
 </head>
 <body>
@@ -135,6 +133,13 @@
     </div>
     <div id="container-vehiculos"></div>
 
+    <!-- CAMPO NOTA EDITABLE DE VUELTA -->
+    <div class="section-title">Observaciones / Nota al Pie</div>
+    <div class="form-group">
+      <label>NOTA INFORMATIVA</label>
+      <textarea id="in-nota" rows="3">NOTA: Consignar una copia del presente pase al supervisor de Seguridad y Protección Integral en el campamento Vulcan del campo Cariña, antes de iniciar las actividades.</textarea>
+    </div>
+
     <button class="btn-action" onclick="generarQR()">GENERAR CÓDIGO QR</button>
   </div>
 
@@ -147,8 +152,8 @@
 
   <button id="btn-descargar-pdf" class="btn-download-pdf" onclick="descargarPDF()">📄 DESCARGAR PASE EN FORMATO PDF</button>
 
-  <!-- VISTA DE HOJA -->
-  <div class="sheet-viewport">
+  <!-- VISTA DE HOJA FLUIDA ADAPTADA AL NAVEGADOR -->
+  <div class="sheet-wrapper">
     <div class="sheet" id="pase-hoja">
       
       <div>
@@ -158,9 +163,9 @@
             <td class="logo-td"><img src="Logo Corporativo.png" alt="Vulcan Logo"></td>
             <td class="title-td">GERENCIA DE SEGURIDAD Y PROTECCION INTEGRAL<br><br>PASE LISTA ACTIVIDADES TEMPORALES<br>(&le; 30 DÍAS)</td>
             <td class="meta-td">
-              <div><strong>Código:</strong>&nbsp;<span id="out-codigo">--</span></div>
-              <div><strong>Fecha:</strong>&nbsp;<span id="out-fecha">--</span></div>
-              <div><strong>Nro.</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="out-nro">--</span></div>
+              <div><strong>Código:</strong> <span id="out-codigo">--</span></div>
+              <div><strong>Fecha:</strong> <span id="out-fecha">--</span></div>
+              <div><strong>Nro.</strong> <span id="out-nro">--</span></div>
             </td>
           </tr>
         </table>
@@ -181,8 +186,8 @@
         <table class="custom-table">
           <thead>
             <tr>
-              <th style="width: 5%;">N°</th>
-              <th style="width: 35%;">Nombre y Apellido</th>
+              <th style="width: 6%;">N°</th>
+              <th style="width: 34%;">Nombre y Apellido</th>
               <th style="width: 20%;">Cédula</th>
               <th style="width: 20%;">Cargo</th>
               <th style="width: 20%;">Telf</th>
@@ -196,13 +201,13 @@
         <table class="custom-table">
           <thead>
             <tr>
-              <th style="width: 5%;">N°</th>
-              <th style="width: 17%;">Placa</th>
-              <th style="width: 17%;">Marca</th>
-              <th style="width: 17%;">Modelo</th>
+              <th style="width: 6%;">N°</th>
+              <th style="width: 16%;">Placa</th>
+              <th style="width: 16%;">Marca</th>
+              <th style="width: 16%;">Modelo</th>
               <th style="width: 12%;">Tipo</th>
               <th style="width: 10%;">Año</th>
-              <th style="width: 22%;">Conductor</th>
+              <th style="width: 24%;">Conductor</th>
             </tr>
           </thead>
           <tbody id="out-table-vehiculos"></tbody>
@@ -224,7 +229,7 @@
           </div>
         </div>
 
-        <div class="note-text">
+        <div class="note-text" id="out-nota">
           NOTA: Consignar una copia del presente pase al supervisor de Seguridad y Protección Integral en el campamento Vulcan del campo Cariña, antes de iniciar las actividades.
         </div>
 
@@ -239,24 +244,6 @@
 
   <script>
     document.getElementById('in-fecha').valueAsDate = new Date();
-
-    function autoEscalarDocumento() {
-      var sheet = document.getElementById('pase-hoja');
-      var viewport = document.querySelector('.sheet-viewport');
-      if (sheet && sheet.style.display !== 'none') {
-        var screenWidth = window.innerWidth - 16;
-        if (screenWidth < 794) {
-          var scale = screenWidth / 794;
-          sheet.style.transform = "scale(" + scale + ")";
-          viewport.style.height = (sheet.offsetHeight * scale) + "px";
-        } else {
-          sheet.style.transform = "scale(1)";
-          viewport.style.height = "auto";
-        }
-      }
-    }
-
-    window.addEventListener('resize', autoEscalarDocumento);
 
     function agregarFilaPersonal(p = {}) {
       const container = document.getElementById('container-personal');
@@ -331,6 +318,7 @@
         ac: document.getElementById('in-aut-cargo').value,
         vn: document.getElementById('in-val-nombre').value,
         vc: document.getElementById('in-val-cargo').value,
+        nt: document.getElementById('in-nota').value,
         p: personalArr,
         v: vehiculosArr
       };
@@ -372,30 +360,16 @@
 
     function descargarPDF() {
       var elemento = document.getElementById('pase-hoja');
-      var viewport = document.querySelector('.sheet-viewport');
-
-      // Guardar estilos actuales
-      var oldTransform = elemento.style.transform;
-      var oldViewportHeight = viewport.style.height;
-
-      // Resetear escala a tamaño real (1:1) antes de capturar el PDF
-      elemento.style.transform = "none";
-      viewport.style.height = "auto";
 
       var opt = { 
-        margin: 0, 
+        margin: [15, 15, 15, 15], 
         filename: 'Pase_Vulcan_' + document.getElementById('out-codigo').innerText + '.pdf', 
         image: { type: 'jpeg', quality: 0.98 }, 
-        html2canvas: { scale: 2, useCORS: true, windowWidth: 794 }, 
-        jsPDF: { unit: 'pt', format: 'letter', orientation: 'portrait' } 
+        html2canvas: { scale: 2, useCORS: true }, 
+        jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' } 
       };
 
-      html2pdf().set(opt).from(elemento).save().then(() => {
-        // Restaurar escala para la vista en pantalla del móvil
-        elemento.style.transform = oldTransform;
-        viewport.style.height = oldViewportHeight;
-        autoEscalarDocumento();
-      });
+      html2pdf().set(opt).from(elemento).save();
     }
 
     window.onload = function() {
@@ -420,6 +394,10 @@
           document.getElementById('out-aut-cargo').innerText = data.ac || 'GERENTE SOLICITANTE';
           document.getElementById('out-val-nombre').innerText = data.vn || 'OSCAR GIL ARIAS';
           document.getElementById('out-val-cargo').innerText = data.vc || 'GERENTE DE SEGURIDAD Y PROTECCION INTEGRAL';
+          
+          if (data.nt) {
+            document.getElementById('out-nota').innerText = data.nt;
+          }
 
           var tbodyP = document.getElementById('out-table-personal');
           tbodyP.innerHTML = '';
@@ -459,8 +437,6 @@
           document.getElementById('qr-panel').style.display = 'none';
           document.getElementById('pase-hoja').style.display = 'flex';
           document.getElementById('btn-descargar-pdf').style.display = 'block';
-
-          setTimeout(autoEscalarDocumento, 50);
 
         } catch (e) {
           console.error("Error al procesar los datos del QR:", e);
